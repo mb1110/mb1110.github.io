@@ -108,7 +108,7 @@ function moveButton(btn, avoidRects = []) {
   btn.style.top = `${y}px`;
 }
 
-/* NO button still dodges (as before) */
+/* NO button still dodges */
 function moveNoButton() {
   moveButton(noBtn, [yesBtn.getBoundingClientRect()]);
   message.textContent = "Nice try 😄 (the 'No' button is feeling shy)";
@@ -138,35 +138,4 @@ function teaseYesMove() {
 }
 
 function acceptYes() {
-  message.innerHTML = `
-    <div class="reward-wrap">
-      <div>AAAAA YES!!! 💖<br/>Okay—officially the cutest Valentine ever.</div>
-      <img class="reward-img" src="redlight.jpg" alt="Red light surprise 🔴✨" />
-      <div>🔴✨ Surprise unlocked.</div>
-    </div>
-  `;
-  startConfetti();
-  yesBtn.disabled = true;
-  noBtn.disabled = true;
-}
-
-yesBtn.addEventListener("click", () => {
-  yesTries += 1;
-
-  if (yesTries <= 2) {
-    teaseYesMove();
-    return;
-  }
-
-  acceptYes();
-});
-
-/* Mobile friendliness: also tease on touchstart so it feels responsive */
-yesBtn.addEventListener(
-  "touchstart",
-  (e) => {
-    // let click still fire; just make it feel immediate on mobile
-    if (yesTries < 2) teaseYesMove();
-  },
-  { passive: true }
-);
+  const redLightDataUri = `data:image/webp;base64,UklGRngqAABXRUJQVlA4IGwqAABwlQCdASq/AB8BPmEoj0UkIqOWq04wQAYEtBfft/3slcCX/+X0tvy77YeJyF/k/ve+nfdvOv0Y9h+Tl0L57P+h6vP7B6g37EdNnzH+aZ/0P1o91n9L/1/7E/AB/K/8J///aQ9U7+9f87//+4L+wn/49d393vg5/sH/W9hX9v////7fcA///qAf/XiovNd42/j/Efye+l/bv+/+4Bon68dSz5D97/1f9w9JP+B4y/Lj/C9QX8d/nn+V/Nr+5cgZbP0Bfar7H/uP8B+5/nff8Hod9dPYA/oP9e/XX23/6nhXfZ/93+2fwA/0H/Cfsr7s39f/7f9B5yv0j/Pf+r/R/AP/Of7T/2f8d7Zv/t9uv7Z//v3Rv2a//bhD1kt4Ybgl775M5/TUr/BKT0Se8jhjpiUBk7LoO8dQ61h1spEFFD9077nbd/6Bm6YartM72RKgbvDXa6JEcaJi4XoaLjqGSeGdNP9aQfIF+IkeNTuvPO5EeZl1QTVIfAPIxvTd/C2870wpeVyYUbGe+N4zjH5S6Lp10hUnUPzSUFM4i97HK0hTG9bTvBTOZrF90Clc+lIXwWpnuxQL1lvnzv/k+y1oh4Sz9p9o4DpXD/jtRN151OwnFtKkmwFpzqqba1gf0JgBeJzUZblVMQwespQyIZG96ME/hBa5WEBgyDvDhD7RnR62RxuwCTbqokRTOkHorJ/ll6blic5Ep1WXrqD+lCx7JoUzIURTuyQ3Mpkdtm7tNrStpN0hU+snsU169W6Vawme5XOo7h/OfHn4SX9+Qq1xam68cP2kE+DhgZFXJ4L+4GL4D43iNMtnjbKtdGRYFWzx/bYaMxUpCu/z9A/fSYodOOh9e89gS6/9cw9C00wNvIA6zUx0lAnHBTc6KjpfVdp9maOhzvbhyXF+hnXafbV4i+IIoh1t+p7iyuGQ4Oi67KYYXRwHrDOTh47/k1tGI0DRcszKhCg3zMERQfOB7PL78QX9seBOqAR1GURjQaiM/dQ5aNrIGOB2iFx5eT4LjWrsQtH4SIpkwCWTcngrcfH7KUL+ldfjrfupA0CihiAaeTHf3+Nuj/tDo6iumBw4TDHtvzM4QfV/rxl0gVS9WM4jqx8eeGj67j0FzfLmtY83qSLCjER5/Al7q+IrmLd2xTJtdHK4CaPrjYSYA7N5XXLcH2R+sycFXb1GjLTUoix6QRmrpZ7aukgigmI28nEKfERkTQAZdlIp7LRJ5BXdcntVDusCeu/1wPZF2Tmd1WN3CVkW5k2qpkMxZrN0UyVZ8YYQbhIaLn6Z90NlIqh/kd3W6lGHg2MQYtq1vHdjBgCDl7Foljhk2GhgTGdCiqgCV
