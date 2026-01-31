@@ -8,19 +8,22 @@ const BESTQOOL_LINK =
 const PRADA_LINK =
   "https://www.sunglasshut.com/us/prada/pr-15ws-8056262345986";
 
-// Keep movement confined inside the card + near the button row
+// Layout anchors
 const card = document.querySelector(".card");
 const buttonsRow = document.querySelector(".buttons");
 
-// Store original position & allowed Y band once
 let origin = null;
+let yesClicks = 0;
+let bonusYesClicks = 0;
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+/* --- Keep movement confined inside the card + near the original button row --- */
 function setOriginIfNeeded(btn) {
   if (origin) return;
+
   const cardRect = card.getBoundingClientRect();
   const btnRect = btn.getBoundingClientRect();
   const rowRect = buttonsRow.getBoundingClientRect();
@@ -29,7 +32,7 @@ function setOriginIfNeeded(btn) {
     x: btnRect.left - cardRect.left,
     y: btnRect.top - cardRect.top,
     bandTop: rowRect.top - cardRect.top - 6,
-    bandHeight: 90, // movement stays "slightly bottom" of the row
+    bandHeight: 90, // tweak 70–120 if you want
   };
 }
 
@@ -69,7 +72,31 @@ function moveButton(btn) {
   btn.style.top = `${y}px`;
 }
 
-/* Optional: keep NO playful */
+/* --- HARD hide the original Yes/No row (fixes your issue) --- */
+function hideMainButtonsRow() {
+  // Reset any floating styles so they can't overlay anything
+  [yesBtn, noBtn].forEach((b) => {
+    b.disabled = true;
+    b.style.position = "";
+    b.style.left = "";
+    b.style.top = "";
+    b.style.zIndex = "";
+    b.style.display = "none";
+    b.style.pointerEvents = "none";
+  });
+
+  // Hide the whole row container so it disappears completely
+  if (buttonsRow) {
+    buttonsRow.style.display = "none";
+    buttonsRow.style.visibility = "hidden";
+    buttonsRow.style.height = "0";
+    buttonsRow.style.margin = "0";
+    buttonsRow.style.padding = "0";
+    buttonsRow.style.pointerEvents = "none";
+  }
+}
+
+/* --- Optional: keep NO playful before success --- */
 function moveNoButton() {
   moveButton(noBtn);
   message.textContent = "Nice try 😄 (the 'No' button is feeling shy)";
@@ -85,10 +112,7 @@ noBtn.addEventListener(
   { passive: false }
 );
 
-/* ---------- Main YES flow: dodges exactly twice, then accepts ---------- */
-let yesClicks = 0;
-let bonusYesClicks = 0; // for the "double gift" yes button
-
+/* --- Main YES flow: dodges exactly twice, then accepts --- */
 yesBtn.addEventListener("click", () => {
   yesClicks += 1;
 
@@ -102,7 +126,7 @@ yesBtn.addEventListener("click", () => {
   showMainSuccess();
 });
 
-/* ---------- Markup helpers ---------- */
+/* --- Markup helpers --- */
 function linkButton(href, label) {
   return `
     <a href="${href}" target="_blank" rel="noopener noreferrer"
@@ -174,13 +198,9 @@ function smallYesNo(idYes, idNo) {
   `;
 }
 
-/* ---------- Screens ---------- */
+/* --- Screens --- */
 function showMainSuccess() {
-  // IMPORTANT: hide big buttons so they can't cover the message area
-  yesBtn.disabled = true;
-  noBtn.disabled = true;
-  yesBtn.style.display = "none";
-  noBtn.style.display = "none";
+  hideMainButtonsRow(); // <-- KEY FIX
 
   message.innerHTML = `
     <div style="display:grid; gap:10px; text-align:left;">
@@ -202,12 +222,12 @@ function showMainSuccess() {
   `;
 }
 
-/* ---------- Event delegation for bonus UI inside message ---------- */
+/* --- Bonus UI (event delegation inside #message) --- */
 message.addEventListener("click", (e) => {
   const id = e.target && e.target.id;
 
   if (id === "bonusBtn") {
-    bonusYesClicks = 0; // reset each time you open bonus flow
+    bonusYesClicks = 0; // reset bonus clicks
     const bonusArea = document.getElementById("bonusArea");
     if (!bonusArea) return;
 
@@ -226,7 +246,8 @@ message.addEventListener("click", (e) => {
   if (id === "bonusNo") {
     const bonusMsg = document.getElementById("bonusMsg");
     if (bonusMsg) {
-      bonusMsg.innerHTML = `<div style="opacity:0.85;">Okay fine 😭 (but you’re missing out)</div>`;
+      bonusMsg.innerHTML =
+        `<div style="opacity:0.85;">Okay fine 😭 (but you’re missing out)</div>`;
     }
     return;
   }
@@ -255,7 +276,7 @@ message.addEventListener("click", (e) => {
       </div>
     `;
 
-    // disable the yes/no after success (optional)
+    // disable the bonus yes/no after success
     const by = document.getElementById("bonusYes");
     const bn = document.getElementById("bonusNo");
     if (by) by.disabled = true;
@@ -263,7 +284,7 @@ message.addEventListener("click", (e) => {
   }
 });
 
-/* Reset origin on resize (keeps movement band correct) */
+/* Keep movement band correct on resize */
 window.addEventListener("resize", () => {
   origin = null;
 });
