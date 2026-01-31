@@ -12,7 +12,7 @@ const PRADA_LINK =
 const card = document.querySelector(".card");
 const buttonsRow = document.querySelector(".buttons");
 
-// store original position & allowed Y band once
+// Store original position & allowed Y band once
 let origin = null;
 
 function rand(min, max) {
@@ -21,7 +21,6 @@ function rand(min, max) {
 
 function setOriginIfNeeded(btn) {
   if (origin) return;
-
   const cardRect = card.getBoundingClientRect();
   const btnRect = btn.getBoundingClientRect();
   const rowRect = buttonsRow.getBoundingClientRect();
@@ -30,7 +29,7 @@ function setOriginIfNeeded(btn) {
     x: btnRect.left - cardRect.left,
     y: btnRect.top - cardRect.top,
     bandTop: rowRect.top - cardRect.top - 6,
-    bandHeight: 90, // tweak 70–120
+    bandHeight: 90, // movement stays "slightly bottom" of the row
   };
 }
 
@@ -70,7 +69,7 @@ function moveButton(btn) {
   btn.style.top = `${y}px`;
 }
 
-/* NO button: playful dodge (kept) */
+/* Optional: keep NO playful */
 function moveNoButton() {
   moveButton(noBtn);
   message.textContent = "Nice try 😄 (the 'No' button is feeling shy)";
@@ -88,6 +87,7 @@ noBtn.addEventListener(
 
 /* ---------- Main YES flow: dodges exactly twice, then accepts ---------- */
 let yesClicks = 0;
+let bonusYesClicks = 0; // for the "double gift" yes button
 
 yesBtn.addEventListener("click", () => {
   yesClicks += 1;
@@ -102,8 +102,8 @@ yesBtn.addEventListener("click", () => {
   showMainSuccess();
 });
 
-/* ---------- UI helpers for message-area buttons ---------- */
-function primaryLinkButton(href, label) {
+/* ---------- Markup helpers ---------- */
+function linkButton(href, label) {
   return `
     <a href="${href}" target="_blank" rel="noopener noreferrer"
        style="
@@ -174,11 +174,13 @@ function smallYesNo(idYes, idNo) {
   `;
 }
 
-/* ---------- Screens / states ---------- */
+/* ---------- Screens ---------- */
 function showMainSuccess() {
-  // lock the original big buttons
+  // IMPORTANT: hide big buttons so they can't cover the message area
   yesBtn.disabled = true;
   noBtn.disabled = true;
+  yesBtn.style.display = "none";
+  noBtn.style.display = "none";
 
   message.innerHTML = `
     <div style="display:grid; gap:10px; text-align:left;">
@@ -187,7 +189,7 @@ function showMainSuccess() {
         Okay—officially the cutest Valentine ever.
       </div>
 
-      ${primaryLinkButton(BESTQOOL_LINK, "Claim your 🔴✨ surprise")}
+      ${linkButton(BESTQOOL_LINK, "Claim your 🔴✨ surprise")}
 
       <div style="opacity:0.8;">(PS: Red light 🔴✨)</div>
 
@@ -198,72 +200,70 @@ function showMainSuccess() {
       <div id="bonusArea"></div>
     </div>
   `;
-
-  const bonusBtn = document.getElementById("bonusBtn");
-  bonusBtn.addEventListener("click", showBonusPrompt);
 }
 
-function showBonusPrompt() {
-  const bonusArea = document.getElementById("bonusArea");
-  if (!bonusArea) return;
+/* ---------- Event delegation for bonus UI inside message ---------- */
+message.addEventListener("click", (e) => {
+  const id = e.target && e.target.id;
 
-  bonusArea.innerHTML = `
-    <div style="display:grid; gap:10px;">
-      <div style="font-weight:800;">
-        double double… do you want double gift? 😈🎁
-      </div>
-      ${smallYesNo("bonusYes", "bonusNo")}
-      <div id="bonusMsg"></div>
-    </div>
-  `;
+  if (id === "bonusBtn") {
+    bonusYesClicks = 0; // reset each time you open bonus flow
+    const bonusArea = document.getElementById("bonusArea");
+    if (!bonusArea) return;
 
-  const bonusYes = document.getElementById("bonusYes");
-  const bonusNo = document.getElementById("bonusNo");
-
-  bonusYes.addEventListener("click", onBonusYesClick);
-  bonusNo.addEventListener("click", () => {
-    document.getElementById("bonusMsg").innerHTML =
-      `<div style="opacity:0.85;">Okay fine 😭 (but you’re missing out)</div>`;
-  });
-}
-
-/* Bonus YES requires 2 clicks */
-let bonusYesClicks = 0;
-
-function onBonusYesClick() {
-  bonusYesClicks += 1;
-
-  const bonusMsg = document.getElementById("bonusMsg");
-  if (!bonusMsg) return;
-
-  if (bonusYesClicks === 1) {
-    bonusMsg.innerHTML = `
+    bonusArea.innerHTML = `
       <div style="display:grid; gap:10px;">
-        <div style="font-weight:850;">
-          sorry u not get cuz u a pika 😤⚡<br/>
-          try to click again
+        <div style="font-weight:800;">
+          double double… do you want double gift? 😈🎁
         </div>
+        ${smallYesNo("bonusYes", "bonusNo")}
+        <div id="bonusMsg"></div>
       </div>
     `;
     return;
   }
 
-  // second click: give the link
-  bonusMsg.innerHTML = `
-    <div style="display:grid; gap:10px;">
-      <div style="font-weight:850;">Okayyy you earned it 😌✨</div>
-      ${primaryLinkButton(PRADA_LINK, "Get link 😎🖤")}
-    </div>
-  `;
+  if (id === "bonusNo") {
+    const bonusMsg = document.getElementById("bonusMsg");
+    if (bonusMsg) {
+      bonusMsg.innerHTML = `<div style="opacity:0.85;">Okay fine 😭 (but you’re missing out)</div>`;
+    }
+    return;
+  }
 
-  // optional: disable bonus buttons after success
-  const bonusYes = document.getElementById("bonusYes");
-  const bonusNo = document.getElementById("bonusNo");
-  if (bonusYes) bonusYes.disabled = true;
-  if (bonusNo) bonusNo.disabled = true;
-}
+  if (id === "bonusYes") {
+    bonusYesClicks += 1;
+    const bonusMsg = document.getElementById("bonusMsg");
+    if (!bonusMsg) return;
 
-/* If layout shifts, reset origin */
+    if (bonusYesClicks === 1) {
+      bonusMsg.innerHTML = `
+        <div style="display:grid; gap:10px;">
+          <div style="font-weight:850;">
+            sorry u not get cuz u a pika 😤⚡<br/>
+            try to click again
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    bonusMsg.innerHTML = `
+      <div style="display:grid; gap:10px;">
+        <div style="font-weight:850;">Okayyy you earned it 😌✨</div>
+        ${linkButton(PRADA_LINK, "Get link 😎🖤")}
+      </div>
+    `;
+
+    // disable the yes/no after success (optional)
+    const by = document.getElementById("bonusYes");
+    const bn = document.getElementById("bonusNo");
+    if (by) by.disabled = true;
+    if (bn) bn.disabled = true;
+  }
+});
+
+/* Reset origin on resize (keeps movement band correct) */
 window.addEventListener("resize", () => {
   origin = null;
 });
